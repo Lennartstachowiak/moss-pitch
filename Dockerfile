@@ -1,36 +1,52 @@
-# Use the official Node.js 18 image as base
-FROM node:18-alpine
+# Multi-stage build
+# Stage 1: Build stage
+FROM node:18-alpine AS builder
 
-# Set the working directory inside the container
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including devDependencies for build)
+# Install all dependencies
 RUN npm ci
 
-# Copy the rest of the application code
+# Copy source code
 COPY . .
 
-# Build the Next.js application
+# Build the application
 RUN npm run build
 
-# Remove devDependencies after build
-RUN npm prune --production
+# Stage 2: Production stage
+FROM node:18-alpine AS runner
 
-# Create a non-root user to run the application
+WORKDIR /app
+
+# Create non-root user
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nextjs -u 1001
 
-# Change ownership of the app directory to the nextjs user
-RUN chown -R nextjs:nodejs /app
+# Copy package files
+COPY package*.json ./
+
+# Install only production dependencies (but keep typescript for next.config.ts)
+RUN npm ci --only=production && npm install typescript
+
+# Copy built application from builder stage
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/server.js ./server.js
+
+# Copy any config files that might be needed
+COPY --chown=nextjs:nodejs next.config.* ./
+COPY --chown=nextjs:nodejs tailwind.config.* ./
+COPY --chown=nextjs:nodejs tsconfig.json ./
+
 USER nextjs
 
-# Expose the port the app runs on
+# Expose the port
 EXPOSE 3000
 
-# Set environment variable for production
+# Set environment variable
 ENV NODE_ENV=production
 
 # Start the application
