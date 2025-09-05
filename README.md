@@ -54,12 +54,45 @@ A real-time presentation system built with Next.js and Socket.IO that allows an 
 - `changeImage`: Sent by admin to change the displayed image
 - `imageChanged`: Broadcast to all clients when image changes
 
-## Production Deployment
+## Deployment Options
 
-For production, run:
+### Docker Deployment (Recommended for Render)
+
+1. **Build and run with Docker:**
+   ```bash
+   docker build -t presentation-system .
+   docker run -p 3000:3000 presentation-system
+   ```
+
+2. **Or use Docker Compose:**
+   ```bash
+   docker-compose up --build
+   ```
+
+3. **For Render.com deployment:**
+   - Connect your GitHub repository to Render
+   - Select "Docker" as the environment
+   - Render will automatically detect and use the Dockerfile
+   - Set the port to `3000`
+   - Your app will be available at your Render URL
+
+### Traditional Node.js Deployment
+
+For production without Docker:
 ```bash
 npm run build
 npm start
 ```
+
+### Adding Your Own Images
+
+1. Place your presentation images in the `public/slides/` folder
+2. The admin panel will automatically use images from this directory
+3. Supported formats: PNG, JPG, JPEG, GIF, WebP
+
+### Environment Variables
+
+- `NODE_ENV`: Set to `production` for production builds
+- `PORT`: Server port (defaults to 3000)
 
 The system is designed to be simple and lightweight, perfect for presentations, digital signage, or remote teaching scenarios.
