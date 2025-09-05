@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import { io, Socket } from "socket.io-client";
 
 const SAMPLE_IMAGES = [
+  "/slides/intro-slide.jpeg",
   "/slides/slide1.png",
   "/slides/slide2.png",
   "/slides/slide3.png",
   "/slides/slide4.png",
   "/slides/slide5.png",
-  "/slides/company-values.png",
+  "/slides/company-values.jpeg",
 ];
 
 const ADMIN_PIN = "5412";
