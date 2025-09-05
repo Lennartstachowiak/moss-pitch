@@ -1,58 +1,220 @@
-# Presentation System
+# Real-Time Presentation System
 
-A real-time presentation system built with Next.js and Socket.IO that allows an admin to control what images are displayed to viewers in real-time.
+A real-time presentation system built with Next.js and Socket.IO that allows an admin to control what images are displayed to viewers in real-time with PIN protection.
 
 ## Features
 
-- **Admin Panel** (`/admin`): Control interface to select and display images
-- **Viewer Page** (`/viewer`): Display page that shows the current image in fullscreen
-- **Real-time Updates**: Uses WebSocket (Socket.IO) for instant synchronization
-- **Simple Storage**: In-memory storage for the current presentation state
-- **Sample Images**: Pre-loaded placeholder images for quick testing
-- **Custom URLs**: Support for displaying images from any URL
+- **🏠 Viewer Page** (`/`): Main presentation display that shows images in real-time
+- **🔐 Admin Panel** (`/admin`): PIN-protected control interface (PIN: 5412)
+- **⚡ Real-time Updates**: WebSocket synchronization for instant image changes
+- **💾 In-Memory Storage**: Simple state management for current presentation
+- **🖼️ Local Images**: Support for images in `public/slides/` folder
+- **🌐 Custom URLs**: Display images from any external URL
+- **🔒 Security**: PIN protection prevents unauthorized access to admin controls
 
-## Getting Started
+## Quick Start
 
-1. Install dependencies:
+1. **Install dependencies:**
    ```bash
    npm install
    ```
 
-2. Start the development server:
+2. **Add your presentation images:**
+   ```bash
+   # Place your images in the public/slides/ folder
+   cp your-images/* public/slides/
+   ```
+
+3. **Start the development server:**
    ```bash
    npm run dev
    ```
 
-3. Open your browser and navigate to:
-   - Home page: http://localhost:3000
-   - Admin panel: http://localhost:3000/admin
-   - Viewer: http://localhost:3000/viewer
+4. **Access the system:**
+   - **Presentation Display**: http://localhost:3000 (main viewer)
+   - **Admin Control**: http://localhost:3000/admin (requires PIN: 5412)
 
-## How to Use
+## How It Works
 
-### Admin Panel
-1. Navigate to `/admin`
-2. Choose from sample images or enter a custom image URL
-3. Click on any image or "Show Image" button to display it to all viewers
-4. Use "Clear Display" to remove the current image
+### System Architecture
 
-### Viewer
-1. Navigate to `/viewer`
-2. The page will automatically display whatever the admin selects
-3. Connection status is shown in the top-right corner
-4. The page updates in real-time without needing to refresh
+```
+┌─────────────────┐    WebSocket     ┌─────────────────┐
+│   Admin Panel   │ ◄──────────────► │   WebSocket     │
+│   (PIN: 5412)   │                  │    Server       │
+└─────────────────┘                  │   (Socket.IO)   │
+                                     │                 │
+┌─────────────────┐    WebSocket     │                 │
+│  Viewer Pages   │ ◄──────────────► │                 │
+│ (Multiple clients)                 │                 │
+└─────────────────┘                  └─────────────────┘
+                                             │
+                                             ▼
+                                     ┌─────────────────┐
+                                     │  In-Memory      │
+                                     │  Storage        │
+                                     │ (currentImage)  │
+                                     └─────────────────┘
+```
 
-## Architecture
+### Data Flow
 
-- **Frontend**: Next.js 15 with React 19, TypeScript, and Tailwind CSS
-- **Backend**: Custom Express-like server with Socket.IO
-- **Real-time Communication**: Socket.IO for WebSocket connections
-- **Storage**: In-memory storage (resets on server restart)
+1. **Image Selection**: Admin selects an image in the admin panel
+2. **WebSocket Emission**: Admin client emits `changeImage` event with image URL
+3. **Server Storage**: Server stores the image URL in memory
+4. **Broadcast**: Server broadcasts `imageChanged` event to all connected clients
+5. **Real-time Update**: All viewer clients immediately display the new image
 
-## API Events
+### Component Breakdown
 
-- `changeImage`: Sent by admin to change the displayed image
-- `imageChanged`: Broadcast to all clients when image changes
+#### 1. **Custom Server** (`server.js`)
+- **Purpose**: Handles both Next.js routing and WebSocket connections
+- **Technology**: Node.js with Socket.IO
+- **Features**:
+  - Serves Next.js application
+  - Manages WebSocket connections
+  - Maintains current image state in memory
+  - Broadcasts image changes to all clients
+
+```javascript
+// Key server functionality
+io.on('connection', (socket) => {
+  // Send current image to new connections
+  socket.emit('imageChanged', currentImage);
+  
+  // Handle admin image changes
+  socket.on('changeImage', (imageUrl) => {
+    currentImage = imageUrl; // Store in memory
+    io.emit('imageChanged', imageUrl); // Broadcast to all
+  });
+});
+```
+
+#### 2. **Viewer Page** (`src/app/page.tsx`)
+- **Purpose**: Main presentation display
+- **Features**:
+  - Real-time image display
+  - Connection status indicator
+  - Responsive image sizing (max-height: 80vh)
+  - Automatic WebSocket reconnection
+
+```javascript
+// Key viewer functionality
+useEffect(() => {
+  const socket = io();
+  
+  socket.on('imageChanged', (imageUrl) => {
+    setCurrentImage(imageUrl); // Update display
+  });
+  
+  socket.on('connect', () => {
+    setIsConnected(true); // Show connection status
+  });
+}, []);
+```
+
+#### 3. **Admin Panel** (`src/app/admin/page.tsx`)
+- **Purpose**: PIN-protected control interface
+- **Security**: Requires PIN 5412 for access
+- **Features**:
+  - PIN authentication form
+  - Image thumbnail preview
+  - Local image management
+  - Custom URL input
+  - Clear display functionality
+
+```javascript
+// Key admin functionality
+const handlePinSubmit = (e) => {
+  if (pinInput === ADMIN_PIN) {
+    setIsAuthenticated(true); // Access granted
+    // Initialize WebSocket connection
+  }
+};
+
+const changeImage = (imageUrl) => {
+  socket.emit('changeImage', imageUrl); // Send to server
+};
+```
+
+### Storage System
+
+The system uses **in-memory storage** for simplicity:
+
+```javascript
+let currentImage = null; // Global server state
+
+// When admin changes image
+socket.on('changeImage', (imageUrl) => {
+  currentImage = imageUrl; // Update server memory
+  io.emit('imageChanged', imageUrl); // Notify all clients
+});
+
+// When new client connects
+socket.emit('imageChanged', currentImage); // Send current state
+```
+
+**Storage Characteristics:**
+- ✅ **Fast**: Instant read/write operations
+- ✅ **Simple**: No database setup required
+- ✅ **Lightweight**: Minimal memory footprint
+- ⚠️ **Temporary**: State resets on server restart
+- ⚠️ **Single Instance**: Not suitable for multi-server deployments
+
+### WebSocket Events
+
+| Event | Direction | Purpose | Data |
+|-------|-----------|---------|------|
+| `connect` | Client → Server | Client connection established | - |
+| `disconnect` | Client → Server | Client disconnected | - |
+| `changeImage` | Admin → Server | Admin requests image change | `imageUrl: string` |
+| `imageChanged` | Server → All Clients | Notify image has changed | `imageUrl: string` |
+
+### Security Features
+
+1. **PIN Protection**: Admin panel requires PIN 5412
+2. **Input Validation**: PIN input is sanitized and validated
+3. **Error Handling**: Invalid PIN attempts show error messages
+4. **Session Management**: Authentication state managed client-side
+5. **CORS Configuration**: WebSocket server configured for safe cross-origin requests
+
+## File Structure
+
+```
+moss-pitch/
+├── server.js                 # Custom server with WebSocket support
+├── public/slides/            # Presentation images directory
+│   ├── intro-slide.jpeg
+│   ├── slide1.png
+│   └── ...
+├── src/app/
+│   ├── page.tsx             # Main viewer page (index)
+│   └── admin/
+│       └── page.tsx         # PIN-protected admin panel
+├── lib/
+│   ├── storage.ts           # Storage utilities (unused in current setup)
+│   └── websocket.ts         # WebSocket utilities (unused in current setup)
+├── Dockerfile               # Docker containerization
+├── docker-compose.yml       # Docker Compose configuration
+└── package.json            # Dependencies and scripts
+```
+
+## Usage Scenarios
+
+### 1. **Live Presentations**
+- Speaker controls slides from admin panel
+- Audience views presentation on main URL
+- Real-time synchronization ensures everyone sees the same content
+
+### 2. **Digital Signage**
+- Content manager updates displayed images remotely
+- Multiple displays show synchronized content
+- PIN protection prevents unauthorized changes
+
+### 3. **Remote Teaching**
+- Teacher controls visual content from admin interface
+- Students access viewer URL for synchronized learning materials
+- No software installation required for students
 
 ## Deployment Options
 
