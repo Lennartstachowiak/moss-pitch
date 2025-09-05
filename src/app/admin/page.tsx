@@ -4,13 +4,15 @@ import { useState, useEffect } from "react";
 import { io, Socket } from "socket.io-client";
 
 const SAMPLE_IMAGES = [
-  "/slides/intro-slide.jpeg",
-  "/slides/slide1.png",
-  "/slides/slide2.png",
-  "/slides/slide3.png",
-  "/slides/slide4.png",
-  "/slides/slide5.png",
-  "/slides/company-values.jpeg",
+  "/slides/1 moss it up.jpg",
+  "/slides/2 moss is a gift.jpg",
+  "/slides/3 let the walls shine.jpg",
+  "/slides/4 moss obsession.jpg",
+  "/slides/5 start small - grow fast.jpg",
+  "/slides/6 grow proactively.jpg",
+  "/slides/7 more is more.jpg",
+  "/slides/8 moss people only.jpg",
+  "/slides/9 company values.jpg",
 ];
 
 const ADMIN_PIN = "5412";
