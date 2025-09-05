@@ -7,14 +7,17 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including devDependencies for build)
+RUN npm ci
 
 # Copy the rest of the application code
 COPY . .
 
 # Build the Next.js application
 RUN npm run build
+
+# Remove devDependencies after build
+RUN npm prune --production
 
 # Create a non-root user to run the application
 RUN addgroup -g 1001 -S nodejs

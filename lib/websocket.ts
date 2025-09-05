@@ -1,7 +1,8 @@
 import { Server as SocketIOServer } from 'socket.io';
+import { Server } from 'http';
 import { storage } from './storage';
 
-export function initializeWebSocket(server: any) {
+export function initializeWebSocket(server: Server) {
   const io = new SocketIOServer(server, {
     cors: {
       origin: "*",

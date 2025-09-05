@@ -1,31 +1,29 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
 
 export default function ViewerPage() {
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const newSocket = io();
-    setSocket(newSocket);
+    const socket = io();
 
-    newSocket.on('connect', () => {
+    socket.on('connect', () => {
       setIsConnected(true);
     });
 
-    newSocket.on('disconnect', () => {
+    socket.on('disconnect', () => {
       setIsConnected(false);
     });
 
-    newSocket.on('imageChanged', (imageUrl: string) => {
+    socket.on('imageChanged', (imageUrl: string) => {
       setCurrentImage(imageUrl);
     });
 
     return () => {
-      newSocket.close();
+      socket.close();
     };
   }, []);
 
