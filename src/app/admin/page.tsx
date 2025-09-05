@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import { io, Socket } from "socket.io-client";
 
 const SAMPLE_IMAGES = [
-  "/slides/image.png",
-  "/slides/image (1).png",
-  "/slides/image (2).png",
-  "/slides/image (3).png",
-  "/slides/image (4).png",
+  "/slides/slide1.png",
+  "/slides/slide2.png",
+  "/slides/slide3.png",
+  "/slides/slide4.png",
+  "/slides/slide5.png",
+  "/slides/company-values.png",
 ];
 
 const ADMIN_PIN = "5412";
@@ -65,10 +66,15 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow-md p-8 w-full max-w-md">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">Admin Access</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+            Admin Access
+          </h1>
           <form onSubmit={handlePinSubmit}>
             <div className="mb-4">
-              <label htmlFor="pin" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="pin"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Enter PIN
               </label>
               <input
