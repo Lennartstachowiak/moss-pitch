@@ -11,23 +11,41 @@ const SAMPLE_IMAGES = [
   "/slides/image (4).png",
 ];
 
+const ADMIN_PIN = "5412";
+
 export default function AdminPage() {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [customImageUrl, setCustomImageUrl] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [pinInput, setPinInput] = useState("");
+  const [pinError, setPinError] = useState("");
 
   useEffect(() => {
-    const newSocket = io();
-    setSocket(newSocket);
+    if (isAuthenticated) {
+      const newSocket = io();
+      setSocket(newSocket);
 
-    newSocket.on("imageChanged", (imageUrl: string) => {
-      setCurrentImage(imageUrl);
-    });
+      newSocket.on("imageChanged", (imageUrl: string) => {
+        setCurrentImage(imageUrl);
+      });
 
-    return () => {
-      newSocket.close();
-    };
-  }, []);
+      return () => {
+        newSocket.close();
+      };
+    }
+  }, [isAuthenticated]);
+
+  const handlePinSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pinInput === ADMIN_PIN) {
+      setIsAuthenticated(true);
+      setPinError("");
+    } else {
+      setPinError("Invalid PIN. Please try again.");
+      setPinInput("");
+    }
+  };
 
   const changeImage = (imageUrl: string) => {
     if (socket) {
@@ -41,6 +59,43 @@ export default function AdminPage() {
       setCustomImageUrl("");
     }
   };
+
+  // Show PIN entry form if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-md p-8 w-full max-w-md">
+          <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">Admin Access</h1>
+          <form onSubmit={handlePinSubmit}>
+            <div className="mb-4">
+              <label htmlFor="pin" className="block text-sm font-medium text-gray-700 mb-2">
+                Enter PIN
+              </label>
+              <input
+                type="password"
+                id="pin"
+                value={pinInput}
+                onChange={(e) => setPinInput(e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-xl tracking-widest"
+                placeholder="••••"
+                maxLength={4}
+                autoFocus
+              />
+              {pinError && (
+                <p className="mt-2 text-sm text-red-600">{pinError}</p>
+              )}
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+            >
+              Access Admin Panel
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
