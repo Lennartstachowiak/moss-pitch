@@ -41,12 +41,12 @@ export default function Home() {
         </span>
       </div>
 
-      <div className="w-full h-full flex items-center justify-center p-8">
+      <div className="w-full h-screen flex items-center justify-center p-8">
         {currentImage ? (
           <img
             src={currentImage}
             alt="Presentation slide"
-            className="max-w-full max-h-full object-contain"
+            className="max-w-full max-h-[80vh] object-contain"
           />
         ) : (
           <div className="text-center">
