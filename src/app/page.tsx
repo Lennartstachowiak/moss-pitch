@@ -29,48 +29,41 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center">
-      <div className="absolute top-4 right-4 flex items-center gap-2">
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center overflow-hidden">
+      {/* Connection Status - Top Right */}
+      <div className="absolute top-2 right-2 z-10 flex items-center gap-1 sm:gap-2">
         <div
-          className={`w-3 h-3 rounded-full ${
+          className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${
             isConnected ? "bg-green-500" : "bg-red-500"
           }`}
         />
-        <span className="text-white text-sm">
+        <span className="text-white text-xs sm:text-sm">
           {isConnected ? "Connected" : "Disconnected"}
         </span>
       </div>
 
-      <div className="w-full h-screen flex items-center justify-center p-8">
+      {/* Main Content Area - Full Screen */}
+      <div className="w-full h-screen flex items-center justify-center">
         {currentImage ? (
           <img
             src={currentImage}
             alt="Presentation slide"
-            className="max-w-full max-h-[80vh] object-contain"
+            className="w-full h-full object-contain"
           />
         ) : (
-          <div className="text-center">
-            <div className="text-6xl text-gray-600 mb-4">📺</div>
-            <p className="text-white text-xl">
+          <div className="text-center px-4">
+            <div className="text-4xl sm:text-6xl text-gray-600 mb-2 sm:mb-4">
+              📺
+            </div>
+            <p className="text-white text-lg sm:text-xl">
               Waiting for presentation to start...
             </p>
-            <p className="text-gray-400 text-sm mt-2">
-              The admin will control what is displayed here
+            <p className="text-gray-400 text-xs sm:text-sm mt-1 sm:mt-2">
+              The presenter will control what is displayed here
             </p>
           </div>
         )}
       </div>
-
-      {currentImage && (
-        <div className="absolute bottom-4 left-4 right-4">
-          <div className="bg-black bg-opacity-50 text-white text-sm p-2 rounded text-center">
-            Currently displaying:{" "}
-            {currentImage.length > 60
-              ? currentImage.substring(0, 60) + "..."
-              : currentImage}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
